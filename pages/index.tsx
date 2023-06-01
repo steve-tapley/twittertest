@@ -6,6 +6,7 @@ import { useRef, useCallback, useState } from "react";
 export default function Home() {
   const blurbRef = useRef("");
   const [generatingPosts, setGeneratingPosts] = useState("");
+  const [blurbsFinishedGenerating, setBlurbsFinishedGenerating] = useState<boolean>(false);
 
   const prompt = `Generate 3 tweets and clearly labeled "1." , "2." and "3.". 
                   Follow the following criteria:
@@ -18,6 +19,7 @@ export default function Home() {
     let firstPost = false;
     let streamedText = "";
 
+    setBlurbsFinishedGenerating(false);
     const response = await fetch("/api/generateBlurb", {
       method: "POST",
       headers: {
@@ -30,9 +32,7 @@ export default function Home() {
     if (!response.ok) {
       throw new Error(response.statusText);
     }
-    //const data = await response.json();
-    //console.log("Response was:", JSON.stringify(data));
-    //setGeneratingPosts(data.choices[0].message.content);
+
     const data = response.body;
     if (!data) {
       return;
@@ -55,6 +55,7 @@ export default function Home() {
         firstPost = streamedText.includes("1.");
       }
     }
+    setBlurbsFinishedGenerating(true);
   }
     , [blurbRef.current]);
 
@@ -89,13 +90,28 @@ export default function Home() {
 
       <Button onClick={generateBlurb}>Generate Blurb</Button>
 
-      {generatingPosts &&
-        generatingPosts
-          .substring(generatingPosts.indexOf("1.") + 3)
-          .split(/2\.|3\./)
-          .map((generatingPost, index) => {
-            return <Blurb key={index} generatingPost={generatingPost} />;
-          })}
-    </Stack>
+      {generatingPosts && (
+        <>
+          <Stack direction="row-reverse" width="100%">
+            <Typography width="12em" textAlign="center">
+              Plagiarism Score
+            </Typography>
+          </Stack>
+          {generatingPosts
+            .substring(generatingPosts.indexOf("1.") + 3)
+            .split(/2\.|3\./)
+            .map((generatingPost, index) => {
+              return (
+                <Blurb
+                  key={index}
+                  generatingPost={generatingPost}
+                  blurbsFinishedGenerating={blurbsFinishedGenerating}
+                ></Blurb>
+              );
+            })}
+        </>
+      )
+      }
+    </Stack >
   );
 }
