@@ -1,20 +1,28 @@
 
-import { Button, Stack, TextField, Typography } from "@mui/material";
+import { Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
+import { useRef, useCallback, useState } from "react";
 
 export default function Home() {
-  async function generateBlurb() {
+  const blurbRef = useRef("");
+  const [generatingPosts, setGeneratingPosts] = useState("");
+  const generateBlurb = useCallback(async () => {
     const response = await fetch("/api/generateBlurb", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        prompt: "This is an empty prompt",
+        prompt: blurbRef.current,
       }),
     });
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
     const data = await response.json();
     console.log("Response was:", JSON.stringify(data));
+    setGeneratingPosts(data.choices[0].message.content);
   }
+    , [blurbRef.current]);
 
   return (
     <Stack
@@ -38,11 +46,20 @@ export default function Home() {
         multiline
         fullWidth
         minRows={4}
+        onChange={(e) => {
+          blurbRef.current = e.target.value;
+        }}
         sx={{ "& textarea": { boxShadow: "none !important" } }}
         placeholder="Key words on what you would like your blurb to be about"
       ></TextField>
 
       <Button onClick={generateBlurb}>Generate Blurb</Button>
+
+      {generatingPosts && (
+        <Card>
+          <CardContent>{generatingPosts}</CardContent>
+        </Card>
+      )}
     </Stack>
   );
 }
