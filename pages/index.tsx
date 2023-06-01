@@ -2,8 +2,18 @@
 import { Button, Stack, TextField, Typography } from "@mui/material";
 
 export default function Home() {
-  function generateBlurb(): void {
-    throw new Error("Function not implemented.");
+  async function generateBlurb() {
+    const response = await fetch("/api/generateBlurb", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: "This is an empty prompt",
+      }),
+    });
+    const data = await response.json();
+    console.log("Response was:", JSON.stringify(data));
   }
 
   return (
